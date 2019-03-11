@@ -39,7 +39,6 @@ local version = "1.0"
 // Mode enums.
 local M_SEARCH = 1
 local M_SHOW = 2
-local M_THANKS = 3
 
 // Rating types.
 local R_SAFE = "safe"
@@ -82,31 +81,35 @@ local varBlacklist = CreateConVar(
   FCVAR_REPLICATED,
   "Blacklisted tags for this server, seperate with spaces."
 )
-local varThanks = CreateConVar(
-  "e621_thanks",
-  "1",
-  FCVAR_REPLICATED,
-  "Allow users to thank the bot?"
-)
 
 // Function to get current settings.
 local function curSettings()
   return {
     enabled = varEnabled:GetBool(),
     allowUnsafe = varAllowUnsafe:GetBool(),
-    blacklist = string.Split(varBlacklist:GetString(), " "),
-    thanks = varThanks:GetBool()
+    blacklist = string.Split(varBlacklist:GetString(), " ")
   }
 end
 
 //[[ Utility functions. ]]//
 
-// Log a message to chat.
-local function out(chat, message)
-  // Make sure it is a string.
+// Format a chat message.
+local function format(message)
   message = tostring(message)
-  // Add the header thing.
   message = "[e621] " .. message
+  return message
+end
+
+// Log a message to console.
+local function console(message)
+  // Print to the console.
+  print(format(message))
+end
+
+// Log a message to chat.
+local function out(message)
+  // Format.
+  message = format(message)
   // Print to the console.
   print(message)
   // Send to players.
@@ -115,6 +118,11 @@ local function out(chat, message)
       ply:ChatPrint(message)
     end
   end
+end
+
+// Log a message to a specific player.
+local function outPly(ply, message)
+  ply:ChatPrint(format(message))
 end
 
 // See if a string matches a list of patterns and return the match.
@@ -135,18 +143,40 @@ local function matchPatterns(text, start, check, prefix)
   return nil
 end
 
+// Generate a new random value. (base36 string)
+local function randomID()
+  // Conversion settings.
+  local base = 36
+  local characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  local characterCount = 4
+
+  // Generate a random value.
+  local value = math.random(math.pow(base, characterCount))
+
+  // Convert the value into a base36 string.
+  local text = ""
+  local i = 0
+  local d = 0
+  while value > 0 do
+    i = i + 1
+    value = math.floor(value / base)
+    d = (value % base) + 1
+    text = string.sub(characters, d, d)
+  end
+
+  // Return the string.
+  return text
+end
+
 //[[ Main functionality. ]]//
 
-// Was the last message sent by the bot?
-local lastMessageBot = false
+// Post cache.
+local postCache = {}
 
 // Run this function every time someone says something.
 hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
 
   //[[ Init. ]]//
-
-  // Update last message state.
-  lastMessageBot = true
 
   // Get settings.
   local settings = curSettings()
@@ -161,7 +191,7 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
 
   // Find out the string that was used to call the bot.
   local call = matchPatterns(message, 1, patterns.start)
-  // Make sure the bot is actually being called.
+  // Do not run if no call was found.
   if call == nil then return end
 
   //[[ Find the mode and rating. ]]//
@@ -174,19 +204,15 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
   local checkSearchQuest = matchPatterns(message, 1, patterns.questionable, call)
   local checkSearchExplict = matchPatterns(message, 1, patterns.explict, call)
 
-  // Check both thanks and no thanks.
-  local checkThanks = matchPatterns(message, 1, patterns.thanks, call)
-  local checkBad = matchPatterns(message, 1, patterns.bad, call)
-
   // Selected mode, rating, full call and good status.
   local mode
   local rating
   local fullCall
-  local good
 
   // Select the mode and rating.
   if checkShow != nil then
     mode = M_SHOW
+    fullCall = checkShow
 
   elseif checkSearchSafe != nil then
     mode = M_SEARCH
@@ -201,20 +227,45 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
     rating = R_EXPLICT
     fullCall = checkSearchExplict
 
-  elseif checkThanks != nil then
-    mode = M_THANKS
-    good = true
-  elseif checkBad != nil then
-    mode = M_THANKS
-    good = false
-
   else
     // All checks failed! (don't do anything)
     return
   end
 
-  
+  // Find the position of the call.
+  local _, callPosition = string.find(message, fullCall)
+  // Pad.
+  callPosition = callPosition + 2
+
+  //[[ Show a post. ]]//
+
+  // Make sure the mode is showing.
+  if mode == M_SHOW then
+
+    // Get and split input.
+    local input = string.Split(string.sub(message, callPosition), " ")
+
+    // Check if a post ID was specified.
+    if input[1] == nil then return end
+
+    // Attempt to get said post.
+    local postURL = postCache[string.upper(tostring(input[1]))]
+
+    // Complain if it was not found.
+    if postURL == nil then
+      outPly(ply, "Sorry " .. ply:Name() .. ", that post was not found.")
+      return
+    end
+
+    // Open said post.
+    ply:SendLua([[gui.OpenURL("]] .. postURL .. [[")]])
+
+    // Don't run further code.
+    return
+    
+  end
+
 end)
 
 //[[ Say hi! ]]//
-out("Started e621 bot v" .. version .. " successfully!")
+console("Started e621 bot v" .. version .. " successfully!")
