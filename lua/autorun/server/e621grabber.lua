@@ -41,13 +41,18 @@ local M_SEARCH = 1
 local M_SHOW = 2
 local M_THANKS = 3
 
+// Rating types.
+local R_SAFE = "safe"
+local R_QUESTIONABLE = "questionable"
+local R_EXPLICT = "explict"
+
 // Patterns for matching commands.
 local patterns = {
   start = {"furbot ", "e621 ", "furry "},
   show = {"show", "view"},
   safe = {"sfw search", "swf search", "e926", "safe"},
   questionable = {"mild search", "questionable"},
-  explict = {"search", "e621", "explict", --[[ May fuck stuff up? ]] ""},
+  explict = {"search", "e621", "explict"},
   thanks = {"good bot", "great bot", "thank", "thanks"},
   bad = {"bad bot", "fuck you"}
 }
@@ -89,7 +94,7 @@ local function curSettings()
   return {
     enabled = varEnabled:GetBool(),
     allowUnsafe = varAllowUnsafe:GetBool(),
-    blacklist = varBlacklist:GetString():split(" "),
+    blacklist = string.Split(varBlacklist:GetString(), " "),
     thanks = varThanks:GetBool()
   }
 end
@@ -112,6 +117,24 @@ local function out(chat, message)
   end
 end
 
+// See if a string matches a list of patterns and return the match.
+local function matchPatterns(text, start, check, prefix)
+  // Loop through specified patterns.
+  for _, pattern in pairs(check) do
+    // Use prefix.
+    if prefix != nil then pattern = prefix .. pattern end
+    // Check for matches and pack results.
+    local result = {string.match(text, pattern, start)}
+    // See if we actually matched.
+    if result[1] != nil then
+      // Return results.
+      return unpack(result)
+    end
+  end
+  // Did not match at all, return nil.
+  return nil
+end
+
 //[[ Main functionality. ]]//
 
 // Was the last message sent by the bot?
@@ -119,6 +142,9 @@ local lastMessageBot = false
 
 // Run this function every time someone says something.
 hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
+
+  //[[ Init. ]]//
+
   // Update last message state.
   lastMessageBot = true
 
@@ -131,8 +157,63 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
   if not settings.enabled then return end
 
   // Lowercase the message.
-  local message = text:lower()
+  local message = string.lower(text)
 
+  // Find out the string that was used to call the bot.
+  local call = matchPatterns(message, 1, patterns.start)
+  // Make sure the bot is actually being called.
+  if call == nil then return end
+
+  //[[ Find the mode and rating. ]]//
+
+  // Check for show.
+  local checkShow = matchPatterns(message, 1, patterns.show, call)
+
+  // Check for various types of search.
+  local checkSearchSafe = matchPatterns(message, 1, patterns.safe, call)
+  local checkSearchQuest = matchPatterns(message, 1, patterns.questionable, call)
+  local checkSearchExplict = matchPatterns(message, 1, patterns.explict, call)
+
+  // Check both thanks and no thanks.
+  local checkThanks = matchPatterns(message, 1, patterns.thanks, call)
+  local checkBad = matchPatterns(message, 1, patterns.bad, call)
+
+  // Selected mode, rating, full call and good status.
+  local mode
+  local rating
+  local fullCall
+  local good
+
+  // Select the mode and rating.
+  if checkShow != nil then
+    mode = M_SHOW
+
+  elseif checkSearchSafe != nil then
+    mode = M_SEARCH
+    rating = R_SAFE
+    fullCall = checkSearchSafe
+  elseif checkSearchQuest != nil then
+    mode = M_SEARCH
+    rating = R_QUESTIONABLE
+    fullCall = checkSearchQuest
+  elseif checkSearchExplict != nil then
+    mode = M_SEARCH
+    rating = R_EXPLICT
+    fullCall = checkSearchExplict
+
+  elseif checkThanks != nil then
+    mode = M_THANKS
+    good = true
+  elseif checkBad != nil then
+    mode = M_THANKS
+    good = false
+
+  else
+    // All checks failed! (don't do anything)
+    return
+  end
+
+  
 end)
 
 //[[ Say hi! ]]//
