@@ -9,7 +9,7 @@
 -- Copyright (c) 2019 Qantify
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
+-- of this software and associated documentation files (the 'Software'), to deal
 -- in the Software without restriction, including without limitation the rights
 -- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 -- copies of the Software, and to permit persons to whom the Software is
@@ -18,7 +18,7 @@
 -- The above copyright notice and this permission notice shall be included in all
 -- copies or substantial portions of the Software.
 --
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 -- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 -- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 -- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -34,26 +34,24 @@
 if CLIENT then return end
 
 // Version number.
-local version = "1.0"
+local version = '1.0'
 
 // Mode enums.
 local M_SEARCH = 1
 local M_SHOW = 2
 
 // Rating types.
-local R_SAFE = "safe"
-local R_QUESTIONABLE = "questionable"
-local R_EXPLICT = "explict"
+local R_SAFE = 'safe'
+local R_QUESTIONABLE = 'questionable'
+local R_EXPLICT = 'explict'
 
 // Patterns for matching commands.
 local patterns = {
-  start = {"furbot ", "e621 ", "furry "},
-  show = {"show", "view"},
-  safe = {"sfw search", "swf search", "e926", "safe"},
-  questionable = {"mild search", "questionable"},
-  explict = {"search", "e621", "explict"},
-  thanks = {"good bot", "great bot", "thank", "thanks"},
-  bad = {"bad bot", "fuck you"}
+  start = {'furbot ', 'e621 ', 'furry ', 'fur '},
+  show = {'show', 'view'},
+  safe = {'sfw search', 'swf search', 'e926', 'safe'},
+  questionable = {'mild search', 'questionable'},
+  explict = {'search', 'e621', 'explict'}
 }
 
 // Maximum amount of posts to load.
@@ -64,34 +62,34 @@ local tagLimit = 4
 
 // HTTP headers.
 local headers = {}
-headers["User-Agent"] = "GarrysMode621Grabber/" .. version .. " (https://github.com/qantify/e621-grabber)"
+headers['User-Agent'] = 'GarrysMode621Grabber/' .. version .. ' (https://github.com/qantify/e621-grabber)'
 
 //[[ Settings. ]]//
 
 // Define convars.
 local varEnabled = CreateConVar(
-  "e621_enabled",
-  "1",
+  'e621_enabled',
+  '1',
   FCVAR_REPLICATED,
-  "Enable the e621 bot?"
+  'Enable the e621 bot?'
 )
 local varAllowUnsafe = CreateConVar(
-  "e621_allowunsafe",
-  "0",
+  'e621_allowunsafe',
+  '0',
   FCVAR_REPLICATED,
-  "Allow explict/questionable searches?"
+  'Allow explict/questionable searches?'
 )
 local varMinScore = CreateConVar(
-  "e621_minscore",
-  "20",
+  'e621_minscore',
+  '20',
   FCVAR_REPLICATED,
-  "Minimum post score?"
+  'Minimum post score?'
 )
 local varBlacklist = CreateConVar(
-  "e621_blacklist",
-  "cub feral forced gore loli mlp scat watersports",
+  'e621_blacklist',
+  'cub feral forced gore loli mlp scat watersports',
   FCVAR_REPLICATED,
-  "Blacklisted tags for this server, seperate with spaces."
+  'Blacklisted tags for this server, seperate with spaces.'
 )
 
 // Function to get current settings.
@@ -100,7 +98,7 @@ local function curSettings()
     enabled = varEnabled:GetBool(),
     allowUnsafe = varAllowUnsafe:GetBool(),
     minScore = varMinScore:GetInt(),
-    blacklist = string.Split(varBlacklist:GetString(), " ")
+    blacklist = string.Split(varBlacklist:GetString(), ' ')
   }
 end
 
@@ -109,7 +107,7 @@ end
 // Format a chat message.
 local function format(message)
   message = tostring(message)
-  message = "[e621] " .. message
+  message = '[e621] ' .. message
   return message
 end
 
@@ -177,28 +175,28 @@ end
 local function urlEncode(url)
   // Character to hex converter.
   local function charToHex(char)
-    return string.format("%%%02X", string.byte(char))
+    return string.format('%%%02X', string.byte(char))
   end
   // Convert string.
-  url = string.gsub(url, "\n", "\r\n")
-  url = string.gsub(url, "([^%w ])", charToHex)
-  url = string.gsub(url, " ", "+")
+  url = string.gsub(url, '\n', '\r\n')
+  url = string.gsub(url, '([^%w ])', charToHex)
+  url = string.gsub(url, ' ', '+')
   // Return encoded URL.
   return url
 end
 
-// Generate a new random value. (base36 string)
-local function randomID()
+// Generate a new random identifier.
+local function randomID(length)
   // Conversion settings.
-  local base = 36
-  local characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  local characterCount = 4
+  local base = 30 // 36
+  local characters = string.upper('0123456789ABCDEFHIKMOPRSTUVXYZ') // '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  local characterCount = length or 3
 
   // Generate a random value.
   local value = math.random(math.pow(base, characterCount))
 
   // Convert.
-  local result = ""
+  local result = ''
   while value > 0 do
     result = characters[value % base] .. result
     value = math.floor(value / base)
@@ -216,22 +214,22 @@ local postCache = {}
 // Function to get post data from the e621 API.
 local function e621(rating, minScore, tags, callback)
   // Set URL.
-  local url = "https://e621.net/post/index.json" ..
-  "?limit=" ..
+  local url = 'https://e621.net/post/index.json' ..
+  '?limit=' ..
   postLimit ..
-  "&tags="
+  '&tags='
 
   // Start the tag URL.
-  local tagUrl = "rating:" .. rating .. " score:>=" .. minScore
+  local tagUrl = 'rating:' .. rating .. ' score:>=' .. minScore
   // Add tag padding if needed.
-  if #tags != 0 then tagUrl = tagUrl .. " " end
+  if #tags != 0 then tagUrl = tagUrl .. ' ' end
 
   // Apply tags.
   for i, tag in ipairs(tags) do
     // Add this tag.
     tagUrl = tagUrl .. tag
     // Add a space if needed.
-    if i != #tags then tagUrl = tagUrl .. " " end
+    if i != #tags then tagUrl = tagUrl .. ' ' end
   end
 
   // Encode the tags.
@@ -240,19 +238,19 @@ local function e621(rating, minScore, tags, callback)
   url = url .. tagUrl
 
   // Log.
-  console("Requesting URL '" .. url .. "'.")
+  console('Requesting URL "' .. url .. '".')
 
   // Fetch content.
   http.Fetch(
     url, // Use generated URL.
     function (body, len, head, stat) // Got response.
       // Log.
-      console("Response received, code " .. stat .. ".")
+      console('Response received, code ' .. stat .. '.')
 
       // Check for errors.
       stat = tostring(stat)
-      if stat != "200" then
-        callback(head["Status"] or stat)
+      if stat != '200' then
+        callback(head['Status'] or stat)
         return
       end
 
@@ -264,7 +262,7 @@ local function e621(rating, minScore, tags, callback)
     end,
     function (err) // Error encountered.
       // Log.
-      console("Error sending request or receiving response!")
+      console('Error sending request or receiving response!')
       // Send error.
       callback(tostring(err))
     end,
@@ -273,7 +271,7 @@ local function e621(rating, minScore, tags, callback)
 end
 
 // Run this function every time someone says something.
-hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
+hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
 
   //[[ Init. ]]//
 
@@ -337,7 +335,12 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
   callPosition = callPosition + 2
 
   // Lock the rating if needed.
-  if not settings.allowUnsafe then rating = R_SAFE end
+  if (not settings.allowUnsafe) and rating != R_SAFE then
+    rating = R_SAFE
+    out(
+      'Explict/questionable searches are disabled on this server, using safe mode. (change with "e621_allowunsafe 1" command)'
+    )
+  end
 
   //[[ Show a post. ]]//
 
@@ -345,7 +348,7 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
   if mode == M_SHOW then
 
     // Get and split input.
-    local input = string.Split(string.sub(message, callPosition), " ")
+    local input = string.Split(string.sub(message, callPosition), ' ')
 
     // Check if a post ID was specified.
     if input[1] == nil then return end
@@ -356,16 +359,16 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
 
     // Complain if it was not found.
     if postURL == nil then
-      outPly(ply, "Sorry " .. ply:Name() .. ", post " .. postID .. " was not found.")
+      outPly(ply, 'Sorry ' .. ply:Name() .. ', post ' .. postID .. ' was not found.')
       return
     end
 
     // Log.
-    outPly(ply, "Opening post " .. postID .. "...")
-    console("User " .. ply:Name() .. " opened post " .. postID .. ".")
+    outPly(ply, 'Opening post ' .. postID .. '...')
+    console('User ' .. ply:Name() .. ' opened post ' .. postID .. '.')
 
     // Open said post.
-    ply:SendLua([[gui.OpenURL("]] .. postURL .. [[")]])
+    ply:SendLua([[gui.OpenURL(']] .. postURL .. [[')]])
 
     // Don't run further code.
     return
@@ -378,29 +381,41 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
   local tagString = string.sub(message, callPosition)
 
   // Remove empty tags and format spaces.
-  tagString = string.gsub(tagString, "%s", " ")
-  tagString = string.gsub(tagString, "%s%s", " ")
-  tagString = string.gsub(tagString, "%s", " ")
-  tagString = string.gsub(tagString, "%s%s", " ")
+  tagString = string.gsub(tagString, '%s', ' ')
+  tagString = string.gsub(tagString, '%s%s', ' ')
+  tagString = string.gsub(tagString, '%s', ' ')
+  tagString = string.gsub(tagString, '%s%s', ' ')
 
   // Split into table.
-  local tags = string.Split(tagString, " ")
+  local tags = string.Split(tagString, ' ')
 
   // Make sure atleast 1 tag was specified.
-  if #tags < 1 or (#tags > 0 and tags[1] == "") then
-    out("Sorry " .. ply:Name() .. ", you have to specify some tags.")
+  if #tags < 1 or (#tags > 0 and tags[1] == '') then
+    out('Sorry ' .. ply:Name() .. ', you have to specify some tags.')
     return
   end
 
   // Limit tags.
   if #tags > tagLimit then
-    out("Sorry " .. ply:Name() .. ", I can only do " .. tagLimit .. " tags at a time.")
+    out(
+      'Sorry ' ..
+      ply:Name() ..
+      ', I can only do ' ..
+      tagLimit ..
+      ' tags at a time.'
+    )
     return
   end
 
   // Log.
   out(
-    "Ok " .. ply:Name() .. ", searching for a post with tags '" .. tagString .. "' and rating " .. rating .. "."
+    'Ok ' ..
+    ply:Name() ..
+    ', searching for a post with tags "' ..
+    tagString ..
+    '" and rating ' ..
+    rating ..
+    '.'
   )
 
   // Ping E621 and wait for the response.
@@ -409,9 +424,11 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
     // Check for errors.
     if error or response == nil then
       out(
-        "Sorry " .. ply:Name() .. ", there was an issue processing your request."
+        'Sorry ' ..
+        ply:Name() ..
+        ', there was an issue processing your request.'
       )
-      console("Error occurred, '" .. error .. "'.")
+      console('Error occurred, "' .. error .. '".')
       return
     end
 
@@ -421,12 +438,12 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
     // Loop through response table and find posts that match the criteria.
     for _, post in pairs(response) do
       // Make sure it is active.
-      if post["status"] != "active" then continue end
+      if post['status'] != 'active' then continue end
       // Make sure that it isn't flash.
-      if post["file_ext"] == "swf" then continue end
+      if post['file_ext'] == 'swf' then continue end
 
       // Get tags.
-      local postTags = string.Split(post["tags"], " ")
+      local postTags = string.Split(post['tags'], ' ')
       // Check against blacklist.
       for _, blacklisted in pairs(settings.blacklist) do
         if contains(postTags, blacklisted) then continue end
@@ -439,7 +456,9 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
     // Make sure we actually found atleast 1 post.
     if #matches < 1 then
       out(
-        "No matching posts found, you may have an invalid/blacklisted tag, or all posts for your tags have a score below " .. settings.minScore .. "."
+        'No matching posts found, you may have an invalid/blacklisted tag, or all posts for your tags have a score below ' ..
+        settings.minScore ..
+        '.'
       )
       return
     end
@@ -447,28 +466,24 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
     // Find a random post in matching posts.
     local selected = matches[math.random(#matches)]
 
-    // Generate a post ID.
-    local newID = randomID()
-
-    // Check for duplicates.
-    // TODO: Maybe ignore?
-    if postCache[newID] != nil then
-      out(
-        "Sorry " .. ply:Name() .. ", an internal table collision error occurred while processing your request. Please try again!"
-      )
-      console("Table collision on ID " .. newID .. ", you have very bad luck!")
-      return
+    // Find a new unique ID.
+    local newIDLength = 3
+    local newID = randomID(newIDLength)
+    // Make sure there are no duplicates.
+    while postCache[newID] != nil do
+      newIDLength = newIDLength + 1
+      newID = randomID(newIDLength)
     end
 
     // Register it.
-    postCache[newID] = "https://e621.net/post/show/" .. selected["id"]
+    postCache[newID] = 'https://e621.net/post/show/' .. selected['id']
 
     // Print out post.
-    out("Found post '" .. postCache[newID] .. "', use 'furry show " .. newID .. "' to open this link.")
+    out('Found post "' .. postCache[newID] .. '", use "' .. call .. 'show ' .. newID .. '" to open this link.')
 
   end)
 
 end)
 
 //[[ Say hi! ]]//
-console("Started e621 bot v" .. version .. " successfully!")
+console('Started e621 bot v' .. version .. ' successfully!')
