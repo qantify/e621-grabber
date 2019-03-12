@@ -444,10 +444,18 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
 
       // Get tags.
       local postTags = string.Split(post['tags'], ' ')
+
       // Check against blacklist.
+      local blacklistFound = false
       for _, blacklisted in pairs(settings.blacklist) do
-        if contains(postTags, blacklisted) then continue end
+        if contains(postTags, blacklisted) then
+          blacklistFound = true
+          break
+        end
       end
+
+      // Make sure no blacklisted tags were found.
+      if blacklistFound then continue end
 
       // Insert the post into the matches.
       table.insert(matches, post)
