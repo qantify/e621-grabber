@@ -56,6 +56,12 @@ local patterns = {
   bad = {"bad bot", "fuck you"}
 }
 
+// Maximum amount of posts to load.
+local postLimit = 20
+
+// Max tag count. (e621 sets this as 6, but watch out for bot defined tags)
+local tagLimit = 4
+
 // HTTP headers.
 local headers = {}
 headers["User-Agent"] = "GarrysMode621Grabber/" .. version .. " (https://github.com/qantify/e621-grabber)"
@@ -119,17 +125,22 @@ local function out(message)
   message = format(message)
   // Print to the console.
   print(message)
-  // Send to players.
-  if chat then
+  // Timer to prevent time travel.
+  timer.Simple(0, function()
+    // Send to players.
     for _, ply in pairs(player.GetAll()) do
       ply:ChatPrint(message)
     end
-  end
+  end)
 end
 
 // Log a message to a specific player.
 local function outPly(ply, message)
-  ply:ChatPrint(format(message))
+  // Timer to prevent time travel.
+  timer.Simple(0, function()
+    // Send to player.
+    ply:ChatPrint(format(message))
+  end)
 end
 
 // See if a string matches a list of patterns and return the match.
@@ -186,19 +197,15 @@ local function randomID()
   // Generate a random value.
   local value = math.random(math.pow(base, characterCount))
 
-  // Convert the value into a base36 string.
-  local text = ""
-  local i = 0
-  local d = 0
+  // Convert.
+  local result = ""
   while value > 0 do
-    i = i + 1
+    result = characters[value % base] .. result
     value = math.floor(value / base)
-    d = (value % base) + 1
-    text = string.sub(characters, d, d)
   end
 
-  // Return the string.
-  return text
+  // Return result.
+  return result
 end
 
 //[[ Main functionality. ]]//
@@ -211,7 +218,7 @@ local function e621(rating, minScore, tags, callback)
   // Set URL.
   local url = "https://e621.net/post/index.json" ..
   "?limit=" ..
-  limit ..
+  postLimit ..
   "&tags="
 
   // Start the tag URL.
@@ -381,7 +388,13 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
 
   // Make sure atleast 1 tag was specified.
   if #tags < 1 or (#tags > 0 and tags[1] == "") then
-    out("Sorry " .. ply:Name() .. ", you have to specify some tags!")
+    out("Sorry " .. ply:Name() .. ", you have to specify some tags.")
+    return
+  end
+
+  // Limit tags.
+  if #tags > tagLimit then
+    out("Sorry " .. ply:Name() .. ", I can only do " .. tagLimit .. " tags at a time.")
     return
   end
 
