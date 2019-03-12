@@ -75,6 +75,12 @@ local varAllowUnsafe = CreateConVar(
   FCVAR_REPLICATED,
   "Allow explict/questionable searches?"
 )
+local varMinScore = CreateConVar(
+  "e621_minscore",
+  "20",
+  FCVAR_REPLICATED,
+  "Minimum post score?"
+)
 local varBlacklist = CreateConVar(
   "e621_blacklist",
   "cub feral forced gore loli mlp scat watersports",
@@ -87,6 +93,7 @@ local function curSettings()
   return {
     enabled = varEnabled:GetBool(),
     allowUnsafe = varAllowUnsafe:GetBool(),
+    minScore = varMinScore:GetInt(),
     blacklist = string.Split(varBlacklist:GetString(), " ")
   }
 end
@@ -143,6 +150,32 @@ local function matchPatterns(text, start, check, prefix)
   return nil
 end
 
+// Check if a table contains an element.
+local function contains(table, element)
+  // Loop through the table and check each element.
+  for _, value in pairs(table) do
+    // Equal?
+    if value == element then
+      return true
+    end
+  end
+  return false
+end
+
+// Function to encode URLs.
+local function urlEncode(url)
+  // Character to hex converter.
+  local function charToHex(char)
+    return string.format("%%%02X", string.byte(char))
+  end
+  // Convert string.
+  url = string.gsub(url, "\n", "\r\n")
+  url = string.gsub(url, "([^%w ])", charToHex)
+  url = string.gsub(url, " ", "+")
+  // Return encoded URL.
+  return url
+end
+
 // Generate a new random value. (base36 string)
 local function randomID()
   // Conversion settings.
@@ -172,6 +205,65 @@ end
 
 // Post cache.
 local postCache = {}
+
+// Function to get post data from the e621 API.
+local function e621(rating, minScore, tags, callback)
+  // Set URL.
+  local url = "https://e621.net/post/index.json" ..
+  "?limit=" ..
+  limit ..
+  "&tags="
+
+  // Start the tag URL.
+  local tagUrl = "rating:" .. rating .. " score:>=" .. minScore
+  // Add tag padding if needed.
+  if #tags != 0 then tagUrl = tagUrl .. " " end
+
+  // Apply tags.
+  for i, tag in ipairs(tags) do
+    // Add this tag.
+    tagUrl = tagUrl .. tag
+    // Add a space if needed.
+    if i != #tags then tagUrl = tagUrl .. " " end
+  end
+
+  // Encode the tags.
+  tagUrl = urlEncode(tagUrl)
+  // Combine both the base URL and the tag URL.
+  url = url .. tagUrl
+
+  // Log.
+  console("Requesting URL '" .. url .. "'.")
+
+  // Fetch content.
+  http.Fetch(
+    url, // Use generated URL.
+    function (body, len, head, stat) // Got response.
+      // Log.
+      console("Response received, code " .. stat .. ".")
+
+      // Check for errors.
+      stat = tostring(stat)
+      if stat != "200" then
+        callback(head["Status"] or stat)
+        return
+      end
+
+      // Execute callback.
+      callback(
+        nil,
+        util.JSONToTable(body) // Convert JSON response to a table.
+      )
+    end,
+    function (err) // Error encountered.
+      // Log.
+      console("Error sending request or receiving response!")
+      // Send error.
+      callback(tostring(err))
+    end,
+    headers // Supply headers defined earlier, with user agent.
+  )
+end
 
 // Run this function every time someone says something.
 hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
@@ -237,6 +329,9 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
   // Pad.
   callPosition = callPosition + 2
 
+  // Lock the rating if needed.
+  if not settings.allowUnsafe then rating = R_SAFE end
+
   //[[ Show a post. ]]//
 
   // Make sure the mode is showing.
@@ -249,21 +344,116 @@ hook.Add("PlayerSay", "PlayerSay_e621Grabber", function(ply, text, team)
     if input[1] == nil then return end
 
     // Attempt to get said post.
-    local postURL = postCache[string.upper(tostring(input[1]))]
+    local postID = string.upper(tostring(input[1]))
+    local postURL = postCache[postID]
 
     // Complain if it was not found.
     if postURL == nil then
-      outPly(ply, "Sorry " .. ply:Name() .. ", that post was not found.")
+      outPly(ply, "Sorry " .. ply:Name() .. ", post " .. postID .. " was not found.")
       return
     end
+
+    // Log.
+    outPly(ply, "Opening post " .. postID .. "...")
+    console("User " .. ply:Name() .. " opened post " .. postID .. ".")
 
     // Open said post.
     ply:SendLua([[gui.OpenURL("]] .. postURL .. [[")]])
 
     // Don't run further code.
     return
-    
+
   end
+
+  //[[ Find a post. ]]//
+
+  // Get the string containing tags.
+  local tagString = string.sub(message, callPosition)
+
+  // Remove empty tags and format spaces.
+  tagString = string.gsub(tagString, "%s", " ")
+  tagString = string.gsub(tagString, "%s%s", " ")
+  tagString = string.gsub(tagString, "%s", " ")
+  tagString = string.gsub(tagString, "%s%s", " ")
+
+  // Split into table.
+  local tags = string.Split(tagString, " ")
+
+  // Make sure atleast 1 tag was specified.
+  if #tags < 1 or (#tags > 0 and tags[1] == "") then
+    out("Sorry " .. ply:Name() .. ", you have to specify some tags!")
+    return
+  end
+
+  // Log.
+  out(
+    "Ok " .. ply:Name() .. ", searching for a post with tags '" .. tagString .. "' and rating " .. rating .. "."
+  )
+
+  // Ping E621 and wait for the response.
+  e621(rating, settings.minScore, tags, function (error, response)
+
+    // Check for errors.
+    if error or response == nil then
+      out(
+        "Sorry " .. ply:Name() .. ", there was an issue processing your request."
+      )
+      console("Error occurred, '" .. error .. "'.")
+      return
+    end
+
+    // Matching posts.
+    local matches = {}
+
+    // Loop through response table and find posts that match the criteria.
+    for _, post in pairs(response) do
+      // Make sure it is active.
+      if post["status"] != "active" then continue end
+      // Make sure that it isn't flash.
+      if post["file_ext"] == "swf" then continue end
+
+      // Get tags.
+      local postTags = string.Split(post["tags"], " ")
+      // Check against blacklist.
+      for _, blacklisted in pairs(settings.blacklist) do
+        if contains(postTags, blacklisted) then continue end
+      end
+
+      // Insert the post into the matches.
+      table.insert(matches, post)
+    end
+
+    // Make sure we actually found atleast 1 post.
+    if #matches < 1 then
+      out(
+        "No matching posts found, you may have an invalid/blacklisted tag, or all posts for your tags have a score below " .. settings.minScore .. "."
+      )
+      return
+    end
+
+    // Find a random post in matching posts.
+    local selected = matches[math.random(#matches)]
+
+    // Generate a post ID.
+    local newID = randomID()
+
+    // Check for duplicates.
+    // TODO: Maybe ignore?
+    if postCache[newID] != nil then
+      out(
+        "Sorry " .. ply:Name() .. ", an internal table collision error occurred while processing your request. Please try again!"
+      )
+      console("Table collision on ID " .. newID .. ", you have very bad luck!")
+      return
+    end
+
+    // Register it.
+    postCache[newID] = "https://e621.net/post/show/" .. selected["id"]
+
+    // Print out post.
+    out("Found post '" .. postCache[newID] .. "', use 'furry show " .. newID .. "' to open this link.")
+
+  end)
 
 end)
 
