@@ -334,14 +334,6 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
   // Pad.
   callPosition = callPosition + 2
 
-  // Lock the rating if needed.
-  if (not settings.allowUnsafe) and rating != R_SAFE then
-    rating = R_SAFE
-    out(
-      'Explict/questionable searches are disabled on this server, using safe mode. (change with "e621_allowunsafe 1" command)'
-    )
-  end
-
   //[[ Show a post. ]]//
 
   // Make sure the mode is showing.
@@ -376,6 +368,14 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
   end
 
   //[[ Find a post. ]]//
+
+  // Lock the rating if needed.
+  if (not settings.allowUnsafe) and rating != R_SAFE then
+    rating = R_SAFE
+    out(
+      'Explict/questionable searches are disabled on this server, using safe mode. (change with "e621_allowunsafe 1" command)'
+    )
+  end
 
   // Get the string containing tags.
   local tagString = string.sub(message, callPosition)
