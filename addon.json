@@ -1,0 +1,19 @@
+{
+  "title": "e621.net Chatbot",
+  "type": "tool",
+  "tags": [
+    "fun",
+    "build"
+  ],
+  "ignore": [
+    "LICENSE",
+    "README.md",
+    ".git",
+    ".git/*",
+    "*.gma",
+    "*.svg",
+    "*.jpg",
+    "*.png",
+    "*.txt"
+  ]
+}

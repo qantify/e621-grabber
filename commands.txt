@@ -1,0 +1,3 @@
+gmad_linux create -folder "e621-grabber" -out "e621-grabber/e621-grabber.gma"
+
+gmpublish_linux update -id 1681311957 -addon e621-grabber.gma

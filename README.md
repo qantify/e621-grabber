@@ -1,5 +1,5 @@
-![Steam File Size Badge](https://img.shields.io/steam/size/:fileId.svg)
-![Steam Downloads Bade](https://img.shields.io/steam/downloads/:fileId.svg)
+![Steam File Size Badge](https://img.shields.io/steam/size/1681311957.svg)
+![Steam Downloads Bade](https://img.shields.io/steam/downloads/1681311957.svg)
 
 
 e621 Bot for Garry's Mod
@@ -13,7 +13,7 @@ Enables players to search for furry content from [e621.net](https://e621.net/) i
 Features
 ---
  * Super simple to use
- * Only 1 small serverside script needed
+ * Only 1 small server-side script needed
  * Almost perfect clone of the already loved /u/furbot_
  * Share your weird ass pron with your friends
  * *bruh moment when you realize what you are doing with your life*
@@ -21,19 +21,19 @@ Features
 
 Installation
 ---
-There are 3 ways to install this addon, although I recommend using the [Steam Workshop](_).
+There are 3 ways to install this addon, although I recommend using the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=1681311957).
 
 ### Steam Workshop (recommended)
-Simply head over to the [workshop page](_) and click **Subscribe**.
+Simply head over to the [workshop page](https://steamcommunity.com/sharedfiles/filedetails/?id=1681311957) and click **Subscribe**.
 The addon will download and install itself automatically.
 It will also update automatically.
 
 ### Direct Install
-Go to the [Releases](_) page and download a **.gma** file.
+Go to the [Releases](https://github.com/qantify/e621-grabber/releases) page and download the **.gma** file.
 Put this file in your **GarrysMod/garrysmod/addons/** folder and restart the server/game.
 
 ### Legacy Addon Install
-Go to the [Releases](_) page and download the **.zip** file.
+Go to the [Releases](https://github.com/qantify/e621-grabber/releases) page and download the **.zip** file.
 Extract the zip into **GarrysMod/garrysmod/addons/**.
 Once in-game, run `reload_legacy_addons` in the console and restart the server/game.
 
@@ -115,9 +115,9 @@ The default blacklist is usually pretty good at keeping bad stuff at bay though.
 
 Support
 ---
-If you have any questions or encounter a bug, please comment on the [workshop page](_) and I will get back to you as soon as I can.
+If you have any questions or encounter a bug, please comment on the [workshop page](https://steamcommunity.com/sharedfiles/filedetails/?id=1681311957) and I will get back to you as soon as I can.
 
-Alternatively, create a discussion on the [workshop](_) and then link it in the comments if it becomes too big for the comment section.
+Alternatively, create a discussion on the [workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=1681311957) and then link it in the comments if it becomes too big for the comment section.
 
 
 Authors
@@ -130,10 +130,10 @@ License
 ---
 Licensed under [MIT](LICENSE). (although I really don't give a shit, do whatever you want with it)
 
-&nbsp;
-&nbsp;
-&nbsp;
-&nbsp;
-&nbsp;
-&nbsp;
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
 *i cant believe that i spent days making this*
