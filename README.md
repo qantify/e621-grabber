@@ -2,14 +2,16 @@
 ![Steam Downloads Bade](https://img.shields.io/steam/downloads/:fileId.svg)
 
 
-# e621 Bot for Garry's Mod
+e621 Bot for Garry's Mod
+===
 >owo whats this? *evil grin*
 
 Clone of the Reddit bot /u/furbot_ for your Garry's Mod server!
 Enables players to search for furry content from [e621.net](https://e621.net/) in the game's chat.
 
 
-## Features
+Features
+---
  * Super simple to use
  * Only 1 small serverside script needed
  * Almost perfect clone of the already loved /u/furbot_
@@ -17,7 +19,8 @@ Enables players to search for furry content from [e621.net](https://e621.net/) i
  * *bruh moment when you realize what you are doing with your life*
 
 
-## Installation
+Installation
+---
 There are 3 ways to install this addon, although I recommend using the [Steam Workshop](_).
 
 ### Steam Workshop (recommended)
@@ -35,7 +38,8 @@ Extract the zip into **GarrysMod/garrysmod/addons/**.
 Once in-game, run `reload_legacy_addons` in the console and restart the server/game.
 
 
-## Usage
+Usage
+---
 Once installed and enabled, the bot should be mostly ready to go.
 
 **If you cannot search for explicit/questionable images, please see the `e621_allowunsafe` option under "Configuration"!**
@@ -109,18 +113,21 @@ Blacklisted tags, set to nothing to disable the blacklist.
 The default blacklist is usually pretty good at keeping bad stuff at bay though.
 
 
-## Support
+Support
+---
 If you have any questions or encounter a bug, please comment on the [workshop page](_) and I will get back to you as soon as I can.
 
 Alternatively, create a discussion on the [workshop](_) and then link it in the comments if it becomes too big for the comment section.
 
 
-## Authors
+Authors
+---
 Made with ❤ by qantify.
 Find me online at /u/qantify and \@qantify.
 
 
-## License
+License
+---
 Licensed under [MIT](LICENSE). (although I really don't give a shit, do whatever you want with it)
 
 &nbsp;
