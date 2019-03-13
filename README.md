@@ -9,6 +9,8 @@ e621 Bot for Garry's Mod
 Clone of the Reddit bot /u/furbot_ for your Garry's Mod server!
 Enables players to search for furry content from [e621.net](https://e621.net/) in the game's chat.
 
+![Example](in-game.png)
+
 
 Features
 ---
