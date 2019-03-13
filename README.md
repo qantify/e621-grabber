@@ -130,10 +130,10 @@ License
 ---
 Licensed under [MIT](LICENSE). (although I really don't give a shit, do whatever you want with it)
 
-&nbsp;  
-&nbsp;  
-&nbsp;  
-&nbsp;  
-&nbsp;  
-&nbsp;  
+# &nbsp;  
+# &nbsp;  
+# &nbsp;  
+# &nbsp;  
+# &nbsp;  
+# &nbsp;  
 *i cant believe that i spent days making this*
