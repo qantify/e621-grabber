@@ -1,5 +1,5 @@
 ![Steam File Size Badge](https://img.shields.io/steam/size/1681311957.svg)
-![Steam Downloads Bade](https://img.shields.io/steam/downloads/1681311957.svg)
+![Steam Downloads Badge](https://img.shields.io/steam/downloads/1681311957.svg)
 
 
 e621 Bot for Garry's Mod
