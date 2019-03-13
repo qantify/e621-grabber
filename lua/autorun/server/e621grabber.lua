@@ -2,7 +2,7 @@
 --
 -- // Garry's Mod e621 Grabber //
 --
--- Simple chat bot thing for grabbing top quality E621 content.
+-- Simple chat bot thing for grabbing top quality e621 content.
 --
 -- MIT License
 --
@@ -43,15 +43,15 @@ local M_SHOW = 2
 // Rating types.
 local R_SAFE = 'safe'
 local R_QUESTIONABLE = 'questionable'
-local R_EXPLICT = 'explict'
+local R_EXPLICIT = 'explicit'
 
 // Patterns for matching commands.
 local patterns = {
   start = {'furbot ', 'e621 ', 'furry ', 'fur '},
-  show = {'show', 'view'},
+  show = {'show', 'view', 'open'},
   safe = {'sfw search', 'swf search', 'e926', 'safe'},
   questionable = {'mild search', 'questionable'},
-  explict = {'search', 'e621', 'explict'}
+  explicit = {'search', 'e621', 'explicit', 'explict'}
 }
 
 // Maximum amount of posts to load.
@@ -77,7 +77,7 @@ local varAllowUnsafe = CreateConVar(
   'e621_allowunsafe',
   '0',
   FCVAR_REPLICATED,
-  'Allow explict/questionable searches?'
+  'Allow explicit/questionable searches?'
 )
 local varMinScore = CreateConVar(
   'e621_minscore',
@@ -299,7 +299,7 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
   // Check for various types of search.
   local checkSearchSafe = matchPatterns(message, 1, patterns.safe, call)
   local checkSearchQuest = matchPatterns(message, 1, patterns.questionable, call)
-  local checkSearchExplict = matchPatterns(message, 1, patterns.explict, call)
+  local checkSearchExplicit = matchPatterns(message, 1, patterns.explicit, call)
 
   // Selected mode, rating, full call and good status.
   local mode
@@ -319,10 +319,10 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
     mode = M_SEARCH
     rating = R_QUESTIONABLE
     fullCall = checkSearchQuest
-  elseif checkSearchExplict != nil then
+  elseif checkSearchExplicit != nil then
     mode = M_SEARCH
-    rating = R_EXPLICT
-    fullCall = checkSearchExplict
+    rating = R_EXPLICIT
+    fullCall = checkSearchExplicit
 
   else
     // All checks failed! (don't do anything)
@@ -373,7 +373,7 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
   if (not settings.allowUnsafe) and rating != R_SAFE then
     rating = R_SAFE
     out(
-      'Explict/questionable searches are disabled on this server, using safe mode. (change with "e621_allowunsafe 1" command)'
+      'Explicit/questionable searches are disabled on this server, using safe mode. (change with "e621_allowunsafe 1" command)'
     )
   end
 
