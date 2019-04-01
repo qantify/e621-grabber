@@ -121,6 +121,9 @@ If you have any questions or encounter a bug, please comment on the [workshop pa
 
 Alternatively, create a discussion on the [workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=1681311957) and then link it in the comments if it becomes too big for the comment section.
 
+If you have an issue with addon compatibility, a quick workaround is to run `e621_forceenable` as a command in the console.
+This will remove all other PlayerSay hooks, but might break other addons.
+
 
 Authors
 ---

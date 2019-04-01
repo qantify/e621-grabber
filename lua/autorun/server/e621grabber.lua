@@ -34,7 +34,7 @@
 if CLIENT then return end
 
 // Version number.
-local version = '1.0'
+local version = '1.1'
 
 // Mode enums.
 local M_SEARCH = 1
@@ -491,6 +491,18 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
 
   end)
 
+end)
+
+// Bugfix for Pretzel, forces this hook to run.
+// NOTE: By force to run I mean by deleting all other PlayerSay hooks.
+concommand.Add('e621_forceenable', function(ply, cmd, args, str)
+  // Log.
+  out('Forcefully disabling all other PlayerSay hooks. This WILL break other addons.')
+  // Set the hook PlayerSay table in the worst way possible.
+  hook.GetTable()['PlayerSay'] = {
+    // Only use this hook.
+    PlayerSay_e621Grabber = hook.GetTable()['PlayerSay']['PlayerSay_e621Grabber']
+  }
 end)
 
 //[[ Say hi! ]]//
