@@ -34,7 +34,7 @@
 if CLIENT then return end
 
 -- Version number.
-local version = '1.1'
+local version = '1.2'
 
 -- Mode enums.
 local M_SEARCH = 1
