@@ -422,7 +422,7 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
   e621(rating, settings.minScore, tags, function (error, response)
 
     -- Check for errors.
-    if error or response == nil then
+    if error or response == nil or not istable(response.posts) then
       out(
         'Sorry ' ..
         ply:Name() ..
@@ -432,18 +432,41 @@ hook.Add('PlayerSay', 'PlayerSay_e621Grabber', function(ply, text, team)
       return
     end
 
+    -- Get posts from the API response.
+    local posts = response.posts
+
     -- Matching posts.
     local matches = {}
 
     -- Loop through response table and find posts that match the criteria.
     for _, post in pairs(posts) do
-      -- Make sure it is active.
-      if post['status'] ~= 'active' then continue end
+      -- Make sure this post has the right tables
+      if not (
+        istable(post['file']) and
+        istable(post['tags']) and
+        istable(post['tags']['general']) and
+        istable(post['tags']['species']) and
+        istable(post['tags']['character']) and
+        istable(post['tags']['copyright']) and
+        istable(post['tags']['artist']) and
+        istable(post['tags']['invalid']) and
+        istable(post['tags']['lore']) and
+        istable(post['tags']['meta'])
+      ) then continue end
+
       -- Make sure that it isn't flash.
-      if post['file_ext'] == 'swf' then continue end
+      if post.file.ext == 'swf' then continue end
 
       -- Get tags.
-      local postTags = string.Split(post['tags'], ' ')
+      local postTags = {}
+      table.Add(postTags, post.tags.general)
+      table.Add(postTags, post.tags.species)
+      table.Add(postTags, post.tags.character)
+      table.Add(postTags, post.tags.copyright)
+      table.Add(postTags, post.tags.artist)
+      table.Add(postTags, post.tags.invalid)
+      table.Add(postTags, post.tags.lore)
+      table.Add(postTags, post.tags.meta)
 
       -- Check against blacklist.
       local blacklistFound = false
